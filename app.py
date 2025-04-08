@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import uuid
 from supabase import create_client, Client
+import os
 
 # Supabase project config
 SUPABASE_URL = "https://kiwfjvsvhbxujgnpjhim.supabase.co"
@@ -136,3 +137,8 @@ if st.session_state.df is not None:
 
     else:
         st.info("Click 'Next' to begin navigating the list.")
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)

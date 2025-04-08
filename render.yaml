@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: admin-app
+    env: python
+    plan: free
+    buildCommand: ""
+    startCommand: "python app.py"
+    repo: https://github.com/paragtipnis/admin_app

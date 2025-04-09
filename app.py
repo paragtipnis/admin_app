@@ -49,7 +49,7 @@ def upload_participants_to_supabase(df):
         batch = records[i:i+50]
         try:
             res = supabase.table("participants").insert(batch).execute()
-            st.write(f"🔄 Batch {i//50 + 1} response:", res)
+#            st.write(f"🔄 Batch {i//50 + 1} response:", res)
             if res.data:
                 st.write(f"✅ Inserted batch {i//50 + 1}")
             else:
@@ -76,8 +76,12 @@ if uploaded_file and st.session_state.df is None:
         st.session_state.uploaded = True
         st.write("Preview of uploaded file:")
         st.dataframe(df.head())
-        if st.button("Upload to Supabase"):
-            upload_participants_to_supabase(df)
+
+# ✅ Always show Upload button when df exists
+if st.session_state.df is not None:
+    if st.button("Upload to Supabase"):
+        st.write("🔁 Upload button clicked.")
+        upload_participants_to_supabase(st.session_state.df)
 
 # Scroll logic
 def update_current_position(index):
@@ -138,6 +142,46 @@ if st.session_state.df is not None:
     else:
         st.info("Click 'Next' to begin navigating the list.")
 
+if st.session_state.df is not None:
+    st.divider()
+    st.subheader("📜 Full Participant List (Click to Jump)")
+
+    items_per_page = 20
+    total_pages = (len(st.session_state.df) + items_per_page - 1) // items_per_page
+
+    if 'page' not in st.session_state:
+        st.session_state.page = 0
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+
+    with col1:
+        if st.button("⬅️ Prev") and st.session_state.page > 0:
+            st.session_state.page -= 1
+
+    with col2:
+        st.markdown(f"**Page {st.session_state.page + 1} of {total_pages}**")
+
+    with col3:
+        if st.button("➡️ Next") and st.session_state.page < total_pages - 1:
+            st.session_state.page += 1
+
+    start_idx = st.session_state.page * items_per_page
+    end_idx = min(start_idx + items_per_page, len(st.session_state.df))
+    page_data = st.session_state.df.iloc[start_idx:end_idx].copy()
+    page_data.index = range(start_idx + 1, end_idx + 1)
+
+    display_names = [
+        f"{i}. {row[0]} (Reg ID: {row[1]})"
+        for i, row in zip(page_data.index, page_data.itertuples(index=False, name=None))
+    ]
+
+    selected_name = st.radio("Select a participant to jump to:", display_names, key="select_name_radio")
+
+    if st.button("Jump to Selected"):
+        selected_index = int(selected_name.split('.')[0]) - 1  # Extract row number
+        st.session_state.current_index = selected_index
+        update_current_position(selected_index)
+        st.rerun()
 
 #if __name__ == "__main__":
 #    port = int(os.environ.get("PORT", 10000))

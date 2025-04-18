@@ -91,6 +91,14 @@ def update_current_position(index):
 
     supabase.table("participants").update({"status": "none"}).gt("position", -1).execute()
 
+#Update 1804-a01 Start - Added a new logic to update status to turn for current turn - updated on 18/04/2024
+    new_turn = index
+    if new_turn < len(st.session_state.df):
+        supabase.table("participants").update({
+            "status":"turn"
+        }).eq ("position", new_turn).execute()
+#Update 1804-a01 Finish
+
     next_row = index + 1
     if next_row < len(st.session_state.df):
         supabase.table("participants").update({
